@@ -79,4 +79,7 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="FX\color.fx" />
+  </ItemGroup>
 </Project>
