@@ -28,6 +28,7 @@ private:
 	void BuildGeometryBuffers();
 	void BuildFX();
 	void BuildVertexLayout();
+	float GetHeight(float x, float z)const;
 private:
 	ID3D11Buffer * mBoxVB;
 	ID3D11Buffer* mBoxIB;
@@ -42,5 +43,7 @@ private:
 	float mPhi;
 	float mRadius;
 	POINT mLastMousePos;
+
+	size_t mGridIndexCount;
 };
 

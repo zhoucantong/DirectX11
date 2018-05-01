@@ -153,6 +153,7 @@
     <ClInclude Include="D3DApp.h" />
     <ClInclude Include="d3dUtil.h" />
     <ClInclude Include="GameTimer.h" />
+    <ClInclude Include="GeometryGenerator.h" />
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="MyPractice.h" />
     <ClInclude Include="Resource.h" />
@@ -164,6 +165,7 @@
     <ClCompile Include="D3DApp.cpp" />
     <ClCompile Include="d3dUtil.cpp" />
     <ClCompile Include="GameTimer.cpp" />
+    <ClCompile Include="GeometryGenerator.cpp" />
     <ClCompile Include="MathHelper.cpp" />
     <ClCompile Include="MyPractice.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -179,9 +181,6 @@
   <ItemGroup>
     <Image Include="MyPractice.ico" />
     <Image Include="small.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="FX\color.fx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
