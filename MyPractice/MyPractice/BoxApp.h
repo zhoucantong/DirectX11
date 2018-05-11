@@ -2,11 +2,13 @@
 #include "D3DApp.h"
 #include <vector>
 #include <map>
+#include <list>
 #include "GeometryGenerator.h"
 using namespace std;
 // #include "effects.h"
 // #include "DirectXMath.h"
 class MyObject;
+class ObjectTransform;
 class GeometryGenerator;
 struct MeshData;
 struct Vertex
@@ -61,22 +63,8 @@ private:
 	XMFLOAT4X4 mGridWorld;
 	XMFLOAT4X4 mCenterSphere;
 
-	size_t mBoxVertexOffset;
-	size_t mGridVertexOffset;
-	size_t mSphereVertexOffset;
-	size_t mCylinderVertexOffset;
-
-	size_t mBoxIndexCount;
-	size_t mGridIndexCount;
-	size_t mSphereIndexCount;
-	size_t mCylinderIndexCount;
-
-	size_t mBoxIndexOffset;
-	size_t mGridIndexOffset;
-	size_t mSphereIndexOffset;
-	size_t mCylinderIndexOffset;
-
 	map<string,MyObject> DrawObjects;// 物体对象
+	list<ObjectTransform> DrawList;		// 需要绘制的几何体列表
 	size_t CurrentIndexOffset;
 	size_t CurrentVertexOffset;
 };
