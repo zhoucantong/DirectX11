@@ -3,13 +3,13 @@
 #include "DirectXMath.h"
 #include "D3Dcompiler.h"
 #include "MyObject.h"
-#include "GeometryGenerator.h"
+
 
 
 BoxApp::BoxApp(HINSTANCE hInstance)
 	: D3DApp(hInstance), mVB(0), mIB(0), mFX(0), mTech(0),
 	mfxWorldViewProj(0), mInputLayout(0),
-	mTheta(1.5f*MathHelper::Pi), mPhi(0.25f*MathHelper::Pi), mRadius(20.0f)
+	mTheta(1.5f*MathHelper::Pi), mPhi(0.25f*MathHelper::Pi), mRadius(10.0f)
 {
 	mMainWndCaption = L"Box Demo";
 	mLastMousePos.x = 0;
@@ -39,6 +39,8 @@ BoxApp::BoxApp(HINSTANCE hInstance)
 		XMStoreFloat4x4(&mSphereWorld[i * 2 + 1],
 			XMMatrixTranslation(+5.0f, 3.5f, -10.0f + i * 5.0f));
 	}
+	CurrentIndexOffset = 0;
+	CurrentVertexOffset = 0;
 }
 BoxApp::~BoxApp()
 {
@@ -105,42 +107,50 @@ void BoxApp::DrawScene()
 		mfxWorldViewProj->SetMatrix(
 			reinterpret_cast<float*>(&(world*viewProj)));
 		mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-		md3dImmediateContext->DrawIndexed(
-			mGridIndexCount, mGridIndexOffset, mGridVertexOffset);
+		auto FindIter = DrawObjects.find(string("grid"));	
+		if (FindIter != DrawObjects.end())
+		{
+			md3dImmediateContext->DrawIndexed(
+				FindIter->second.IndexCount, FindIter->second.mIndexOffset, FindIter->second.mVertexOffset);
+		}
+	
+
 		// Draw the box.
 		world = XMLoadFloat4x4(&mBoxWorld);
 		mfxWorldViewProj->SetMatrix(
 			reinterpret_cast<float*>(&(world*viewProj)));
 		mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
+
+		FindIter = DrawObjects.find(string("box"));
 		md3dImmediateContext->DrawIndexed(
-			mBoxIndexCount, mBoxIndexOffset, mBoxVertexOffset);
-		// Draw center sphere.
-		world = XMLoadFloat4x4(&mCenterSphere);
-		mfxWorldViewProj->SetMatrix(
-			reinterpret_cast<float*>(&(world*viewProj)));
-		mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-		md3dImmediateContext->DrawIndexed(
-			mSphereIndexCount, mSphereIndexOffset, mSphereVertexOffset);
-		// Draw the cylinders.
-		for (int i = 0; i < 10; ++i)
-		{
-			world = XMLoadFloat4x4(&mCylWorld[i]);
-			mfxWorldViewProj->SetMatrix(
-				reinterpret_cast<float*>(&(world*viewProj)));
-			mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-			md3dImmediateContext->DrawIndexed(mCylinderIndexCount,
-				mCylinderIndexOffset, mCylinderVertexOffset);
-		}
-		// Draw the spheres.
-		for (int i = 0; i < 10; ++i)
-		{
-			world = XMLoadFloat4x4(&mSphereWorld[i]);
-			mfxWorldViewProj->SetMatrix(
-				reinterpret_cast<float*>(&(world*viewProj)));
-			mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-			md3dImmediateContext->DrawIndexed(mSphereIndexCount,
-				mSphereIndexOffset, mSphereVertexOffset);
-		}
+			FindIter->second.IndexCount, FindIter->second.mIndexOffset, FindIter->second.mVertexOffset);
+		//// Draw center sphere.
+		//world = XMLoadFloat4x4(&mCenterSphere);
+		//mfxWorldViewProj->SetMatrix(
+		//	reinterpret_cast<float*>(&(world*viewProj)));
+		//mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
+		//md3dImmediateContext->DrawIndexed(
+		//	mSphereIndexCount, mSphereIndexOffset, mSphereVertexOffset);
+		//// Draw the cylinders.
+		//for (int i = 0; i < 10; ++i)
+		//{
+		//	world = XMLoadFloat4x4(&mCylWorld[i]);
+		//	mfxWorldViewProj->SetMatrix(
+		//		reinterpret_cast<float*>(&(world*viewProj)));
+		//	mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
+		//	md3dImmediateContext->DrawIndexed(mCylinderIndexCount,
+		//		mCylinderIndexOffset, mCylinderVertexOffset);
+		//}
+		//// Draw the spheres.
+		//for (int i = 0; i < 10; ++i)
+		//{
+		//	world = XMLoadFloat4x4(&mSphereWorld[i]);
+		//	mfxWorldViewProj->SetMatrix(
+		//		reinterpret_cast<float*>(&(world*viewProj)));
+		//	mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
+		//	md3dImmediateContext->DrawIndexed(mSphereIndexCount,
+		//		mSphereIndexOffset, mSphereVertexOffset);
+		//}
 	}
 	HR(mSwapChain->Present(0, 0));
 }
@@ -293,40 +303,19 @@ void BoxApp::BuildGeometryBuffers()
 {
 	GeometryGenerator::MeshData box;
 	GeometryGenerator::MeshData grid;
-	GeometryGenerator::MeshData sphere;
-	GeometryGenerator::MeshData cylinder;
+
 	GeometryGenerator geoGen;
 	geoGen.CreateBox(1.0f, 1.0f, 1.0f, box);
 	geoGen.CreateGrid(20.0f, 30.0f, 60, 40, grid);
-	geoGen.CreateSphere(0.5f, 20, sphere);
-	geoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20, cylinder);
-	// Cache the vertex offsets to each object in the concatenated
-	// vertex buffer.
-	mBoxVertexOffset = 0;
-	mGridVertexOffset = box.Vertices.size();
-	mSphereVertexOffset = mGridVertexOffset + grid.Vertices.size();
-	mCylinderVertexOffset = mSphereVertexOffset + sphere.Vertices.size();
-	// Cache the index count of each object.
-	mBoxIndexCount = box.Indices.size();
-	mGridIndexCount = grid.Indices.size();
-	mSphereIndexCount = sphere.Indices.size();
-	mCylinderIndexCount = cylinder.Indices.size();
-	// Cache the starting index for each object in the concatenated
-	// index buffer.
-	mBoxIndexOffset = 0;
-	mGridIndexOffset = mBoxIndexCount;
-	mSphereIndexOffset = mGridIndexOffset + mGridIndexCount;
-	mCylinderIndexOffset = mSphereIndexOffset + mSphereIndexCount;
-	UINT totalVertexCount =
-		box.Vertices.size() +
-		grid.Vertices.size() +
-		sphere.Vertices.size() +
-		cylinder.Vertices.size();
-	UINT totalIndexCount =
-		mBoxIndexCount +
-		mGridIndexCount +
-		mSphereIndexCount +
-		mCylinderIndexCount;
+	AddGeometry(("box"),box);
+	// AddGeometry(("grid"),grid);
+	UINT totalVertexCount = 0;
+	UINT totalIndexCount = 0;
+	for (auto iter =  DrawObjects.begin();iter != DrawObjects.end(); ++iter)
+	{
+		totalVertexCount += iter->second.Data.Vertices.size();
+		totalIndexCount += iter->second.IndexCount;
+	}
 	//
 	// Extract the vertex elements we are interested in and pack the
 	// vertices of all the meshes into one vertex buffer.
@@ -334,26 +323,15 @@ void BoxApp::BuildGeometryBuffers()
 	std::vector<Vertex> vertices(totalVertexCount);
 	XMFLOAT4 black(0.0f, 0.0f, 0.0f, 1.0f);
 	UINT k = 0;
-	for (size_t i = 0; i < box.Vertices.size(); ++i, ++k)
+	for (size_t i = 0; i <  DrawObjects.size(); i++)
 	{
-		vertices[k].Pos = box.Vertices[i].Position;
-		vertices[k].Color = black;
+		for (auto iter = DrawObjects.begin(); iter != DrawObjects.end(); ++iter,++k)
+		{
+			vertices[k].Pos = iter->second.Data.Vertices[i].Position;
+			vertices[k].Color = black;
+		}
 	}
-	for (size_t i = 0; i < grid.Vertices.size(); ++i, ++k)
-	{
-		vertices[k].Pos = grid.Vertices[i].Position;
-		vertices[k].Color = black;
-	}
-	for (size_t i = 0; i < sphere.Vertices.size(); ++i, ++k)
-	{
-		vertices[k].Pos = sphere.Vertices[i].Position;
-		vertices[k].Color = black;
-	}
-	for (size_t i = 0; i < cylinder.Vertices.size(); ++i, ++k)
-	{
-		vertices[k].Pos = cylinder.Vertices[i].Position;
-		vertices[k].Color = black;
-	}
+
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
 	vbd.ByteWidth = sizeof(Vertex) * totalVertexCount;
@@ -367,12 +345,11 @@ void BoxApp::BuildGeometryBuffers()
 	// Pack the indices of all the meshes into one index buffer.
 	//
 	std::vector<UINT> indices;
-	indices.insert(indices.end(), box.Indices.begin(), box.Indices.end());
-	indices.insert(indices.end(), grid.Indices.begin(), grid.Indices.end());
-	indices.insert(indices.end(), sphere.Indices.begin(),
-		sphere.Indices.end());
-	indices.insert(indices.end(), cylinder.Indices.begin(),
-		cylinder.Indices.end());
+	for (auto iter = DrawObjects.begin(); iter != DrawObjects.end(); ++iter)
+	{
+		indices.insert(indices.end(), iter->second.Data.Indices.begin(), iter->second.Data.Indices.end());
+	}
+
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
 	ibd.ByteWidth = sizeof(UINT) * totalIndexCount;
@@ -384,6 +361,114 @@ void BoxApp::BuildGeometryBuffers()
 	HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mIB));
 }
 
+//
+//void BoxApp::BuildGeometryBuffers()
+//{
+//	GeometryGenerator::MeshData box;
+//	GeometryGenerator::MeshData grid;
+//	GeometryGenerator::MeshData sphere;
+//	GeometryGenerator::MeshData cylinder;
+//	GeometryGenerator geoGen;
+//	geoGen.CreateBox(1.0f, 1.0f, 1.0f, box);
+//	geoGen.CreateGrid(20.0f, 30.0f, 60, 40, grid);
+//	geoGen.CreateSphere(0.5f, 20, sphere);
+//	geoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20, cylinder);
+//	// Cache the vertex offsets to each object in the concatenated
+//	// vertex buffer.
+//	mBoxVertexOffset = 0;
+//	mGridVertexOffset = box.Vertices.size();
+//	mSphereVertexOffset = mGridVertexOffset + grid.Vertices.size();
+//	mCylinderVertexOffset = mSphereVertexOffset + sphere.Vertices.size();
+//	// Cache the index count of each object.
+//	mBoxIndexCount = box.Indices.size();
+//	mGridIndexCount = grid.Indices.size();
+//	mSphereIndexCount = sphere.Indices.size();
+//	mCylinderIndexCount = cylinder.Indices.size();
+//	// Cache the starting index for each object in the concatenated
+//	// index buffer.
+//	mBoxIndexOffset = 0;
+//	mGridIndexOffset = mBoxIndexCount;
+//	mSphereIndexOffset = mGridIndexOffset + mGridIndexCount;
+//	mCylinderIndexOffset = mSphereIndexOffset + mSphereIndexCount;
+//	UINT totalVertexCount =
+//		box.Vertices.size() +
+//		grid.Vertices.size() +
+//		sphere.Vertices.size() +
+//		cylinder.Vertices.size();
+//	UINT totalIndexCount =
+//		mBoxIndexCount +
+//		mGridIndexCount +
+//		mSphereIndexCount +
+//		mCylinderIndexCount;
+//	//
+//	// Extract the vertex elements we are interested in and pack the
+//	// vertices of all the meshes into one vertex buffer.
+//	//
+//	std::vector<Vertex> vertices(totalVertexCount);
+//	XMFLOAT4 black(0.0f, 0.0f, 0.0f, 1.0f);
+//	UINT k = 0;
+//	for (size_t i = 0; i < box.Vertices.size(); ++i, ++k)
+//	{
+//		vertices[k].Pos = box.Vertices[i].Position;
+//		vertices[k].Color = black;
+//	}
+//	for (size_t i = 0; i < grid.Vertices.size(); ++i, ++k)
+//	{
+//		vertices[k].Pos = grid.Vertices[i].Position;
+//		vertices[k].Color = black;
+//	}
+//	for (size_t i = 0; i < sphere.Vertices.size(); ++i, ++k)
+//	{
+//		vertices[k].Pos = sphere.Vertices[i].Position;
+//		vertices[k].Color = black;
+//	}
+//	for (size_t i = 0; i < cylinder.Vertices.size(); ++i, ++k)
+//	{
+//		vertices[k].Pos = cylinder.Vertices[i].Position;
+//		vertices[k].Color = black;
+//	}
+//	D3D11_BUFFER_DESC vbd;
+//	vbd.Usage = D3D11_USAGE_IMMUTABLE;
+//	vbd.ByteWidth = sizeof(Vertex) * totalVertexCount;
+//	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+//	vbd.CPUAccessFlags = 0;
+//	vbd.MiscFlags = 0;
+//	D3D11_SUBRESOURCE_DATA vinitData;
+//	vinitData.pSysMem = &vertices[0];
+//	HR(md3dDevice->CreateBuffer(&vbd, &vinitData, &mVB));
+//	//
+//	// Pack the indices of all the meshes into one index buffer.
+//	//
+//	std::vector<UINT> indices;
+//	indices.insert(indices.end(), box.Indices.begin(), box.Indices.end());
+//	indices.insert(indices.end(), grid.Indices.begin(), grid.Indices.end());
+//	indices.insert(indices.end(), sphere.Indices.begin(),
+//		sphere.Indices.end());
+//	indices.insert(indices.end(), cylinder.Indices.begin(),
+//		cylinder.Indices.end());
+//	D3D11_BUFFER_DESC ibd;
+//	ibd.Usage = D3D11_USAGE_IMMUTABLE;
+//	ibd.ByteWidth = sizeof(UINT) * totalIndexCount;
+//	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+//	ibd.CPUAccessFlags = 0;
+//	ibd.MiscFlags = 0;
+//	D3D11_SUBRESOURCE_DATA iinitData;
+//	iinitData.pSysMem = &indices[0];
+//	HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mIB));
+//}
+
+void BoxApp::AddGeometry(const string& MeshName,const GeometryGenerator::MeshData& Mesh)
+{
+	DrawObjects;
+	MyObject NewObject;
+	NewObject.mIndexOffset = CurrentIndexOffset;
+	NewObject.mVertexOffset = CurrentVertexOffset;
+	NewObject.IndexCount = Mesh.Indices.size();
+	NewObject.Data = Mesh;
+	CurrentIndexOffset += Mesh.Indices.size();
+	CurrentVertexOffset += Mesh.Vertices.size();
+	DrawObjects.insert(map<string, MyObject>::value_type( MeshName,NewObject));
+}
 float BoxApp::GetHeight(float x, float z)const
 {
 	return 0.3f*(z*sinf(0.1f*x) + x * cosf(0.1f*z));

@@ -1,10 +1,14 @@
 #pragma once
 #include "D3DApp.h"
 #include <vector>
+#include <map>
+#include "GeometryGenerator.h"
 using namespace std;
 // #include "effects.h"
 // #include "DirectXMath.h"
 class MyObject;
+class GeometryGenerator;
+struct MeshData;
 struct Vertex
 {
 	XMFLOAT3 Pos;
@@ -27,6 +31,7 @@ public:
 	void OnMouseMove(WPARAM btnState, int x, int y);
 private:
 	void BuildGeometryBuffers();
+	void AddGeometry(const string& MeshName,const GeometryGenerator::MeshData& Mesh);
 	void BuildFX();
 	void BuildVertexLayout();
 	float GetHeight(float x, float z)const;
@@ -71,7 +76,8 @@ private:
 	size_t mSphereIndexOffset;
 	size_t mCylinderIndexOffset;
 
-	vector<MyObject> DrawObjects;
-	// 物体对象
+	map<string,MyObject> DrawObjects;// 物体对象
+	size_t CurrentIndexOffset;
+	size_t CurrentVertexOffset;
 };
 
