@@ -32,7 +32,21 @@ public:
 	};
 
 public:
+
+	void CreateBox(float width, float height, float depth, MeshData& meshData);
 	void CreateGrid(float width, float depth,
 		UINT m, UINT n, MeshData& meshData);
+	void CreateCylinder(float bottomRadius, float topRadius, float height, UINT sliceCount, UINT
+		stackCount, MeshData& meshData);
+	void BuildCylinderBottomCap(float bottomRadius,
+		float topRadius, float height, UINT sliceCount,
+		UINT stackCount, MeshData& meshData);
+	void BuildCylinderTopCap(float bottomRadius,
+		float topRadius, float height, UINT sliceCount,
+		UINT stackCount, MeshData& meshData);
+	void CreateSphere(float radius, UINT numSubdivisions, MeshData& meshData);
+
+private:
+	void Subdivide(MeshData& meshData);
 };
 

@@ -49,6 +49,7 @@ protected:
 	ID3D11RenderTargetView* mRenderTargetView;
 	ID3D11DepthStencilView* mDepthStencilView;
 	D3D11_VIEWPORT mScreenViewport;
+	ID3D11RasterizerState* mWireframeRS;
 	// The following variables are initialized in the D3DApp constructor
 	// to default values. However, you can override the values in the
 	// derived class constructor to pick different defaults.

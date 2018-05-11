@@ -429,6 +429,14 @@ bool D3DApp::InitDirect3D()
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = 0;
 
+	D3D11_RASTERIZER_DESC noCullDesc;
+	ZeroMemory(&noCullDesc, sizeof(D3D11_RASTERIZER_DESC));
+	noCullDesc.FillMode = D3D11_FILL_SOLID; //D3D11_FILL_WIREFRAME;// D3D11_FILL_SOLID;
+	noCullDesc.CullMode = D3D11_CULL_NONE;
+	noCullDesc.FrontCounterClockwise = false;
+	noCullDesc.DepthClipEnable = true;
+	HR(md3dDevice->CreateRasterizerState(&noCullDesc, &mWireframeRS));
+
 	// To correctly create the swap chain, we must use the IDXGIFactory that was
 	// used to create the device.  If we tried to use a different IDXGIFactory instance
 	// (by calling CreateDXGIFactory), we get an error: "IDXGIFactory::CreateSwapChain: 
