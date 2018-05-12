@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <list>
+#include "MyObject.h"
 #include "GeometryGenerator.h"
 using namespace std;
 // #include "effects.h"
@@ -63,7 +64,7 @@ private:
 	XMFLOAT4X4 mGridWorld;
 	XMFLOAT4X4 mCenterSphere;
 
-	map<string,MyObject> DrawObjects;// 物体对象
+	ObjectManager DrawObjects;// 物体对象
 	list<ObjectTransform> DrawList;		// 需要绘制的几何体列表
 	size_t CurrentIndexOffset;
 	size_t CurrentVertexOffset;

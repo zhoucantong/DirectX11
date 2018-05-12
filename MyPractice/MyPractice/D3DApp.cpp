@@ -431,7 +431,7 @@ bool D3DApp::InitDirect3D()
 
 	D3D11_RASTERIZER_DESC noCullDesc;
 	ZeroMemory(&noCullDesc, sizeof(D3D11_RASTERIZER_DESC));
-	noCullDesc.FillMode = D3D11_FILL_SOLID; //D3D11_FILL_WIREFRAME;// D3D11_FILL_SOLID;
+	noCullDesc.FillMode = D3D11_FILL_WIREFRAME; //D3D11_FILL_WIREFRAME;// D3D11_FILL_SOLID;
 	noCullDesc.CullMode = D3D11_CULL_NONE;
 	noCullDesc.FrontCounterClockwise = false;
 	noCullDesc.DepthClipEnable = true;

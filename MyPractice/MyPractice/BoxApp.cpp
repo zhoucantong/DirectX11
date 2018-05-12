@@ -2,14 +2,14 @@
 #include "BoxApp.h"
 #include "DirectXMath.h"
 #include "D3Dcompiler.h"
-#include "MyObject.h"
+
 
 
 
 BoxApp::BoxApp(HINSTANCE hInstance)
 	: D3DApp(hInstance), mVB(0), mIB(0), mFX(0), mTech(0),
 	mfxWorldViewProj(0), mInputLayout(0),
-	mTheta(1.5f*MathHelper::Pi), mPhi(0.25f*MathHelper::Pi), mRadius(20.0f)
+	mTheta(1.5f*MathHelper::Pi), mPhi(0.25f*MathHelper::Pi), mRadius(40.0f)
 {
 	mMainWndCaption = L"Box Demo";
 	mLastMousePos.x = 0;
@@ -116,73 +116,20 @@ void BoxApp::DrawScene()
 	mTech->GetDesc(&techDesc);
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
-		// Draw the grid.
-		XMMATRIX world = XMLoadFloat4x4(&mGridWorld);
-		mfxWorldViewProj->SetMatrix(
-			reinterpret_cast<float*>(&(world*viewProj)));
-		mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-		auto FindIter = DrawObjects.find(string("grid"));
-		if (FindIter != DrawObjects.end())
-		{
-			md3dImmediateContext->DrawIndexed(
-				FindIter->second.IndexCount, FindIter->second.mIndexOffset, FindIter->second.mVertexOffset);
-		}
-		
-		/*for (auto iter  = DrawList.begin();iter!= DrawList.end();++iter)
+		for (auto iter = DrawList.begin(); iter != DrawList.end(); ++iter)
 		{
 			XMMATRIX world = XMLoadFloat4x4(&iter->WorldTransform);
 			mfxWorldViewProj->SetMatrix(
 				reinterpret_cast<float*>(&(world*viewProj)));
 			mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-			auto FindIter = DrawObjects.find(iter->GeometryName);
-			if (FindIter != DrawObjects.end())
+			auto findres = DrawObjects.FindObject(iter->GeometryName);
+			if (DrawObjects.end() != DrawObjects.FindObject(iter->GeometryName))
 			{
 				md3dImmediateContext->DrawIndexed(
-					FindIter->second.IndexCount, FindIter->second.mIndexOffset, FindIter->second.mVertexOffset);
+					findres->second.IndexCount, findres->second.mIndexOffset, findres->second.mVertexOffset);
 			}
-			break;
+			// break;
 		}
-*/
-		//// Draw the box.
-		//world = XMLoadFloat4x4(&mBoxWorld);
-		//mfxWorldViewProj->SetMatrix(
-		//	reinterpret_cast<float*>(&(world*viewProj)));
-		//mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-
-		//FindIter = DrawObjects.find(string("box"));
-		//if (FindIter != DrawObjects.end())
-		//{
-		//	md3dImmediateContext->DrawIndexed(
-		//		FindIter->second.IndexCount, FindIter->second.mIndexOffset, FindIter->second.mVertexOffset);
-		//}
-		//
-		//// Draw center sphere.
-		//world = XMLoadFloat4x4(&mCenterSphere);
-		//mfxWorldViewProj->SetMatrix(
-		//	reinterpret_cast<float*>(&(world*viewProj)));
-		//mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-		//md3dImmediateContext->DrawIndexed(
-		//	mSphereIndexCount, mSphereIndexOffset, mSphereVertexOffset);
-		//// Draw the cylinders.
-		//for (int i = 0; i < 10; ++i)
-		//{
-		//	world = XMLoadFloat4x4(&mCylWorld[i]);
-		//	mfxWorldViewProj->SetMatrix(
-		//		reinterpret_cast<float*>(&(world*viewProj)));
-		//	mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-		//	md3dImmediateContext->DrawIndexed(mCylinderIndexCount,
-		//		mCylinderIndexOffset, mCylinderVertexOffset);
-		//}
-		//// Draw the spheres.
-		//for (int i = 0; i < 10; ++i)
-		//{
-		//	world = XMLoadFloat4x4(&mSphereWorld[i]);
-		//	mfxWorldViewProj->SetMatrix(
-		//		reinterpret_cast<float*>(&(world*viewProj)));
-		//	mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-		//	md3dImmediateContext->DrawIndexed(mSphereIndexCount,
-		//		mSphereIndexOffset, mSphereVertexOffset);
-		//}
 	}
 	HR(mSwapChain->Present(0, 0));
 }
@@ -294,6 +241,7 @@ void BoxApp::BuildGeometryBuffers()
 	AddGeometry(("cylinder"), cylinder);
 	UINT totalVertexCount = 0;
 	UINT totalIndexCount = 0;
+	MyObject FindRes;
 	for (auto iter =  DrawObjects.begin();iter != DrawObjects.end(); ++iter)
 	{
 		totalVertexCount += iter->second.Data.Vertices.size();
@@ -330,6 +278,7 @@ void BoxApp::BuildGeometryBuffers()
 	std::vector<UINT> indices;
 	for (auto iter = DrawObjects.begin(); iter != DrawObjects.end(); ++iter)
 	{
+
 		indices.insert(indices.end(), iter->second.Data.Indices.begin(), iter->second.Data.Indices.end());
 	}
 
@@ -354,7 +303,7 @@ void BoxApp::AddGeometry(const string& MeshName,const GeometryGenerator::MeshDat
 	NewObject.Data = Mesh;
 	CurrentIndexOffset += Mesh.Indices.size();
 	CurrentVertexOffset += Mesh.Vertices.size();
-	DrawObjects.insert(map<string, MyObject>::value_type( MeshName,NewObject));
+	DrawObjects.push_back( MeshName,NewObject);
 }
 float BoxApp::GetHeight(float x, float z)const
 {
