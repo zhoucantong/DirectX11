@@ -117,7 +117,7 @@ void BoxApp::DrawScene()
 	for (UINT p = 0; p < techDesc.Passes; ++p)
 	{
 		// Draw the grid.
-		/*XMMATRIX world = XMLoadFloat4x4(&mGridWorld);
+		XMMATRIX world = XMLoadFloat4x4(&mGridWorld);
 		mfxWorldViewProj->SetMatrix(
 			reinterpret_cast<float*>(&(world*viewProj)));
 		mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
@@ -126,9 +126,9 @@ void BoxApp::DrawScene()
 		{
 			md3dImmediateContext->DrawIndexed(
 				FindIter->second.IndexCount, FindIter->second.mIndexOffset, FindIter->second.mVertexOffset);
-		}*/
+		}
 		
-		for (auto iter  = DrawList.begin();iter!= DrawList.end();++iter)
+		/*for (auto iter  = DrawList.begin();iter!= DrawList.end();++iter)
 		{
 			XMMATRIX world = XMLoadFloat4x4(&iter->WorldTransform);
 			mfxWorldViewProj->SetMatrix(
@@ -140,8 +140,9 @@ void BoxApp::DrawScene()
 				md3dImmediateContext->DrawIndexed(
 					FindIter->second.IndexCount, FindIter->second.mIndexOffset, FindIter->second.mVertexOffset);
 			}
+			break;
 		}
-
+*/
 		//// Draw the box.
 		//world = XMLoadFloat4x4(&mBoxWorld);
 		//mfxWorldViewProj->SetMatrix(
